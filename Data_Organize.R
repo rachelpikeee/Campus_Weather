@@ -48,11 +48,36 @@ MeterData <- read.csv(paste0(DirMeter[user], DOLD), header = FALSE, skip = 3)
 colnames(MeterData) <- ColNames
 
 #### Cleaning Data ----
+# make flags/corrections based on field notebook notes
+# flag approach for snow/ice, other data that still exists/is potentially usable
+# procedure for data that is not reliable
+#   checking for unreasonable temps -- set extreme thresholds, checks between sensors
 
+
+# Rounds of quality control
+# round 1 = based on metadata / field observations / user assessment
+#   ex: weather station broken --> remove data completely
+#   ex: snow/ice/other things covering the sensor --> flag
+#   ex: weird spikes/abnormal data --> need to see if something happened
+#   NOTE: meter data has own QC checks --> look for NA's in the data
+# if there are any that have these types, go through data more manually to fix problem
+
+# Meter data steps
+# Read in data - both in own table and to old table
+# Create table with date of download/observation and user notes
+# Count NA's since last download and cumulatively (its own QC checks)
+# Check for extreme values / spikes in the data
+
+# Separate script for TOMST data -- more complicated
 
 #### Base Analysis of Data ----
 
 #### Metadata ----
+# Make this into 2 Columns instead of two rows
 MeterUnits <- data.frame(t(c("Date", "W/m^2","mm","N/A","km","˚","m/s","m/s","˚C",
                            "kPa","kPa","˚","˚","mm/h","˚C","kPa","%","mV","kPa","˚C")))
-colnames(MeterUnits) <- ColNames 
+colnames(MeterUnits) <- ColNames
+
+# missing data from 12/12 - 12/19 = weather station unplugged
+
+# Save final clean data tables (data, metadata, etc.) back into the google drive folder
