@@ -7,18 +7,20 @@ library(tibble)
 # Started 2/17/2021
 # Script to read in, clean, and organize campus weather data
 
-# to do:
-#   - organize by what needs to be done every time and what should only be done once
-
 #### Setting up directories
 
 # Creating user numbers for each person
 Users = c(1, # Rachel
           2) # Professor Kropp 
 
+# File path for meter data
 DirMeter = c("/Volumes/GoogleDrive/.shortcut-targets-by-id/1sRKN7b9U7odoX9ABwoUqoeY1G-kRMjHC/campus_weather/METER/",
              "")
+# File path for TOMST data
 DirTOMST = c("/Volumes/GoogleDrive/.shortcut-targets-by-id/1sRKN7b9U7odoX9ABwoUqoeY1G-kRMjHC/campus_weather/TOMST/",
+             "")
+# File path to save final data
+DirFinal = c("/Volumes/GoogleDrive/.shortcut-targets-by-id/1sRKN7b9U7odoX9ABwoUqoeY1G-kRMjHC/campus_weather/Final_Data",
              "")
 
 # Select user - change if needed
@@ -116,16 +118,62 @@ for (i in 1:nrow(NewMeterData)){
                                | NewMeterData[i, "YLevel"]>2 | NewMeterData[i, "YLevel"]<(-2),
                                "X", NA)
 }
+
+# Adding flag for snow
+# Check field notes data frame for dates with notes about snow
+#     if there is a note about snow covering the data, fill in the following code
+
+# Start and end dates for period with snow on sensor (change these values)
+start_date = as_datetime("enter date here", tz = "EST")
+end_date = as_datetime("enter date here", tz = "EST")
+# For indexing
+i = 0
+# Loop through until dates match and while we are still in time period, add an
+#   "X" to the snow flag column
+for (date in NewMeterData$Date){
+  i = i + 1
+  if (date == start_date){
+    while(date != end_date){
+      NewMeterData[i, "sFlag"] = "X"
+      i = i + 1
+    }
+  }
+}
+
+# Adding flag for extreme values
+#   (see questions)
   
+
+# Combining new meter data with larger data frame (not tested)
+MeterData <- rbind(MeterData, NewMeterData)
+
+# Checking for overlap (note tested)
+MeterData <- MeterData[!duplicated(MeterData$Date), ]
+
+# Saving all files back into Google Drive
+# Field notes
+write.csv(FieldNotes, paste0(DirFinal[user], "/FieldNotes.csv"))
+# Meter data
+write.csv(MeterData, paste0(DirFinal[user], "/MeterData.csv"))
+# Meter unit data
+write.csv(MeterUnits, paste0(DirFinal[user], "/MeterUnits.csv"))
+# TOMST data
+write.csv(TOMSTData, paste0(DirFinal[user], "/TOMSTData.csv"))
+# TOMST unit data
+write.csv(TOMSTUnits, paste0(DirFinal[user], "/TOMSTUnits.csv"))
+
 # TO DO:
-# Add method for snow and extreme value flags
-# Combine new meter data with big data set
-# Check for overlap
-# Save files google drive
+# Test untested functions
 
 # QUESTIONS:
 #   changing date as datetime format -- no seconds, function doesn't work
 #   easier way to make all columns numeric?
+#   haven't tested the the snow flag loop -- need to fix date format first
+#   which columns should I be checking for extremes? should the flag be if any
+#     measurement is extreme?
+#   should I be checking for extremes that last more than a certain period of
+#     time? only mark flags if they're extreme values for more than a certain 
+#     time period?
 
 # NOTES:
 #   Separate script for TOMST data -- more complicated
