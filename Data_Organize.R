@@ -26,13 +26,18 @@ DirFinal = c("/Volumes/GoogleDrive/.shortcut-targets-by-id/1sRKN7b9U7odoX9ABwoUq
 # Select user - change if needed
 user = 1
 
+# Creating marker for initial run --> if this is true the first section of code
+#   will run, if false the second section will run.
+InitialRunFlag <- TRUE
+
 #### ONLY RUN ONE TIME ----
+if (InitialRunFlag == TRUE){
 # Creating large data frame for all data from meter sensor 
 # First create column names vector
 ColNames <- c("Date","SolRad","Precip","LightningAct","LightningDist","WindDir","WindSpeed",
               "GustSpeed","AirTemp","VaporPr","AtmosPr","XLevel","YLevel","MaxPrecip",
               "SensorTemp","VPD","BatPct","BatVolt","RefPr","LogTemp", "sFlag", 
-              "lFlag", "exFlag")
+              "lFlag", "exFlag",  "Date_Format", "DOY", "DecYear", "Year", "Hour", "Minute")
 
 # Create empty data frame and rename columns
 MeterData <- data.frame(matrix(ncol = length(ColNames), nrow = 0))
@@ -41,36 +46,21 @@ colnames(MeterData) <- ColNames
 # Create total NA variable to help keep track of sensor's QC tactics
 total_NA <- 0
 
-# Creating data frame for field notes
-#   DATE - date of data download
-#   TIME - time of data download
-#   GEN CONDITOINS - General weather, snow, other conditions from trip
-#   METER CONDITIONS - Specific notes on condition of meter sensors
-#   TOMST CONDITIONS - Specific notes on condition of TOMST sensors
-FieldNotes <- data.frame(matrix(ncol = 4, nrow = 0))
-colnames(FieldNotes) <- c("Date", "General Conditions", "Meter Conditions", 
-                          "TOMST Conditions")
-FieldNotes$Date <- as_datetime(FieldNotes$Date)
-
 # Creating data frame to keep track of units for Meter Data
 MeterUnits <- data.frame(ColNames)
-MeterUnits$Units <- c("Date", "W/m^2","mm",NA,"km","˚","m/s","m/s","˚C",
+MeterUnits$Units <- c("Date Chr",
+                      "W/m^2","mm",NA,"km","˚","m/s","m/s","˚C",
                       "kPa","kPa","˚","˚","mm/h","˚C","kPa","%","mV","kPa","˚C",
-                      NA, NA, NA)
+                      NA, NA, NA, "mdy_hm", "Day", "Year", "Year", "Hour", "Minute")
 colnames(MeterUnits) <- c("Measurement", "Units")
 
-################################################################################
+# Creating data frame to count NA values
+NAcount <- data.frame(matrix(ncol = 5, nrow = 0))
+colnames(NAcount) <- c("Date", "SolarNA", "WindNA", "TempNA", "TotalNA")
+NAcount$Date <- as.Date(NAcount$Date)
+} else {
 
 #### RUN EVERY TIME NEW DATA IS DOWNLOADED ----
-# Adding field observations to data frame
-# Keeping track of current row - MAKE SURE TO RUN!!!
-current_row = nrow(FieldNotes)+1
-# Change the date to most recent download - keep the same format!
-FieldNotes[current_row, "Date"] <- as_datetime("2020-12-19 12:00:00", tz = "EST")
-# Add field observations here
-FieldNotes[current_row, "General Conditions"] <-"Sunny with about .4m of snow"
-FieldNotes[current_row, "Meter Conditions"] <- "Good conditions"
-FieldNotes[current_row, "TOMST Conditions"] <- "Only .5m sensor visible above snow"
 
 # Reading in most recent data
 # Character string of Date of Last Download -> change this every time
@@ -79,40 +69,54 @@ FieldNotes[current_row, "TOMST Conditions"] <- "Only .5m sensor visible above sn
 DOLD <- "07Jan21-1510.csv"
 
 # Read in the csv, skipping the first three columns
-NewMeterData <- read.csv(paste0(DirMeter[user], DOLD), header = FALSE, skip = 3)
-# Cleaning up NA values
-NewMeterData <- replace_with_na_all(NewMeterData, condition = ~.x == "#N/A")
-# Count NAs in new data (only use one row to count NA observations not total 
-#                        NA cells)
-new_NA <- as.numeric(sum(is.na(NewMeterData$V2)))
-# add to total
-total_NA <- total_NA + new_NA
-# remove NAs from data frame
-NewMeterData <- drop_na(NewMeterData)
+NewMeterData <- read.csv(paste0(DirMeter[user], DOLD), header = FALSE, skip = 3,
+                         na.strings = "#N/A")
 # Add flag columns
 NewMeterData <- add_column(.data = NewMeterData, sFlag = NA, lFlag = NA, exFlag = NA)
+
+# Adding other date-related colunmns
+# Column with date in correct format
+NewMeterData$Date_Format <- mdy_hm(NewMeterData[,1])
+# Day of Year columns
+NewMeterData$DOY <- yday(NewMeterData$Date_Format)
+# Year column
+NewMeterData$Year <- year(NewMeterData$Date_Format)
+# Hour column
+NewMeterData$Hour <- hour(NewMeterData$Date_Format)
+# Minute Column
+NewMeterData$Minute <- minute(NewMeterData$Date_Format)
+# Decimal Year Column
+NewMeterData$DecYear <- round(NewMeterData$Year + ((NewMeterData$DOY - 1 + (NewMeterData$Hour/24) + 
+                                                      (NewMeterData$Minute/1440))/
+                                                     ifelse(leap_year(NewMeterData$Year),
+                                                            366,365)), digits = 6)
 # Rename columns
 colnames(NewMeterData) <- ColNames
 
-# Making each column the appropriate type of data -- cant convert to datetime without seconds
-NewMeterData$Date <- as_datetime(NewMeterData$Date, tz = "EST")
-NewMeterData$SolRad <- as.numeric(NewMeterData$SolRad)
-NewMeterData$Precip <- as.numeric(NewMeterData$Precip)
-NewMeterData$LightningAct <- as.numeric(NewMeterData$LightningAct)
-NewMeterData$LightningDist <- as.numeric(NewMeterData$LightningDist)
-NewMeterData$WindDir <- as.numeric(NewMeterData$WindDir)
-NewMeterData$WindSpeed <- as.numeric(NewMeterData$WindSpeed)
-NewMeterData$GustSpeed <- as.numeric(NewMeterData$GustSpeed)
-NewMeterData$AirTemp <- as.numeric(NewMeterData$AirTemp)
-NewMeterData$VaporPr <- as.numeric(NewMeterData$VaporPr)
-NewMeterData$AtmosPr <- as.numeric(NewMeterData$AtmosPr)
-NewMeterData$XLevel <- as.numeric(NewMeterData$XLevel)
-NewMeterData$YLevel <- as.numeric(NewMeterData$YLevel)
-NewMeterData$MaxPrecip <- as.numeric(NewMeterData$MaxPrecip)
-NewMeterData$SensorTemp <- as.numeric(NewMeterData$SensorTemp)
-NewMeterData$VPD <- as.numeric(NewMeterData$VPD)
+# Function to add NA values to NA dataframe
+CountNA <- function(Date){
+  i = nrow(NAcount) + 1
+  NAcount[i,1] = mdy_hm("12/11/20 14:30")
+  NAcount[i,2] = as.numeric(sum(is.na(NewMeterData$SolRad)))
+  NAcount[i,3] = as.numeric(sum(is.na(NewMeterData$WindSpeed)))
+  NAcount[i,4] = as.numeric(sum(is.na(NewMeterData$AirTemp)))
+  NAcount[i,5] = sum(NAcount[i,2:4])
+}
+
+# Function doesn't work right now (?)
+CountNA("12/11/20 14:30")
+
+# testing function outside -- works fine
+i = nrow(NAcount) + 1
+NAcount[i,1] = mdy_hm("12/11/20 14:30")
+NAcount[i,2] = as.numeric(sum(is.na(NewMeterData$SolRad)))
+NAcount[i,3] = as.numeric(sum(is.na(NewMeterData$WindSpeed)))
+NAcount[i,4] = as.numeric(sum(is.na(NewMeterData$AirTemp)))
+NAcount[i,5] = sum(NAcount[i,2:4])
+
 
 # Adding flags for level
+# Should I make this a function?
 for (i in 1:nrow(NewMeterData)){
   NewMeterData$lFlag[i] <- ifelse(NewMeterData[i, "XLevel"]>2 | NewMeterData[i, "XLevel"]<(-2)
                                | NewMeterData[i, "YLevel"]>2 | NewMeterData[i, "YLevel"]<(-2),
@@ -120,25 +124,43 @@ for (i in 1:nrow(NewMeterData)){
 }
 
 # Adding flag for snow
-# Check field notes data frame for dates with notes about snow
-#     if there is a note about snow covering the data, fill in the following code
+# Start and end dates for period with snow on sensor (change these values in user script
+#     based on field notes)
+sFlag = rep(NA, nrow(NewMeterData))
 
-# Start and end dates for period with snow on sensor (change these values)
-start_date = as_datetime("enter date here", tz = "EST")
-end_date = as_datetime("enter date here", tz = "EST")
-# For indexing
-i = 0
-# Loop through until dates match and while we are still in time period, add an
-#   "X" to the snow flag column
-for (date in NewMeterData$Date){
-  i = i + 1
-  if (date == start_date){
-    while(date != end_date){
-      NewMeterData[i, "sFlag"] = "X"
-      i = i + 1
+# Snow flag function
+SnowFlag <- function(start_date, end_date, tz){
+  sFlag1 = rep(NA, nrow(NewMeterData))
+  if (tz == "EST"){
+    for (i in 1:length(start_date)){
+      sFlag1 = ifelse(NewMeterData$Date_Format >= mdy_hm(start_date[i]) & 
+                     NewMeterData$Date_Format <= mdy_hm(end_date[i]), 
+                     1, sFlag)
+      
     }
+    NewMeterData$sFlag <- sFlag1
+  } else{
+  print("Error: wrong time zone, use EST for data entry")
   }
 }
+NewMeterData$SnowFlag <- sFlag
+
+SnowFlag(c("12/11/20 14:30", "1/1/21 14:30"), 
+         c("12/13/20 14:30", "1/3/21 14:30"),
+         "EST")
+
+start_date = c("12/11/20 14:30", "1/1/21 14:30")
+
+sFlag <- ifelse(NewMeterData$Date_Format >= mdy_hm("12/11/20 14:30") & 
+                NewMeterData$Date_Format <= mdy_hm("12/13/20 14:30"), 
+                1,NewMeterData$sFlag)
+
+sFlag <- ifelse(NewMeterData$Date_Format >= mdy_hm("1/1/21 14:30") & 
+                NewMeterData$Date_Format <= mdy_hm("1/3/21 14:30"), 
+                1, NewMeterData$sFlag)
+
+NewMeterData$sFlag <- sFlag
+
 
 # Adding flag for extreme values
 #   (see questions)
@@ -161,21 +183,28 @@ write.csv(MeterUnits, paste0(DirFinal[user], "/MeterUnits.csv"))
 write.csv(TOMSTData, paste0(DirFinal[user], "/TOMSTData.csv"))
 # TOMST unit data
 write.csv(TOMSTUnits, paste0(DirFinal[user], "/TOMSTUnits.csv"))
+}
 
 # TO DO:
-# Test untested functions
+# Look in meta data for what sensor does at daylight savings
+# Add extreme temp flag / function
+# Figure out why functions aren't working
 
 # QUESTIONS:
-#   changing date as datetime format -- no seconds, function doesn't work
-#   easier way to make all columns numeric?
-#   haven't tested the the snow flag loop -- need to fix date format first
-#   which columns should I be checking for extremes? should the flag be if any
-#     measurement is extreme?
+#   Should I make all operations functions? Or should some just run on their own?
+#   In the "user script", will they have to call the functions separately from what
+#     runs when the initial flag is false?
 #   should I be checking for extremes that last more than a certain period of
 #     time? only mark flags if they're extreme values for more than a certain 
 #     time period?
 
+# extreme temps --> just compare to a threshold (does it make sense ex: >1000)
+# sol rad < 0 
+# air temp > something high
+# check manual for wind info
+# atmospheric pressure value for area
+
+
 # NOTES:
 #   Separate script for TOMST data -- more complicated
-#   Save final clean data tables (data, metadata, etc.) back into the google drive folder
 #   Add some check for clock / time of observation -> need to think about this more
