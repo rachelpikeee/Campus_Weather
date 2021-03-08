@@ -37,7 +37,7 @@ if (InitialRunFlag == TRUE){
 ColNames <- c("Date","SolRad","Precip","LightningAct","LightningDist","WindDir","WindSpeed",
               "GustSpeed","AirTemp","VaporPr","AtmosPr","XLevel","YLevel","MaxPrecip",
               "SensorTemp","VPD","BatPct","BatVolt","RefPr","LogTemp", "sFlag", 
-              "lFlag", "exFlag",  "Date_Format", "DOY", "DecYear", "Year", "Hour", "Minute")
+              "lFlag", "TempFlag","SolFlag", "AtmFlag", "Date_Format", "DOY", "DecYear", "Year", "Hour", "Minute")
 
 # Create empty data frame and rename columns
 MeterData <- data.frame(matrix(ncol = length(ColNames), nrow = 0))
@@ -51,7 +51,7 @@ MeterUnits <- data.frame(ColNames)
 MeterUnits$Units <- c("Date Chr",
                       "W/m^2","mm",NA,"km","˚","m/s","m/s","˚C",
                       "kPa","kPa","˚","˚","mm/h","˚C","kPa","%","mV","kPa","˚C",
-                      NA, NA, NA, "mdy_hm", "Day", "Year", "Year", "Hour", "Minute")
+                      NA, NA, NA, NA, NA, "mdy_hm", "Day", "Year", "Year", "Hour", "Minute")
 colnames(MeterUnits) <- c("Measurement", "Units")
 
 # Creating data frame to count NA values
@@ -72,7 +72,8 @@ DOLD <- "07Jan21-1510.csv"
 NewMeterData <- read.csv(paste0(DirMeter[user], DOLD), header = FALSE, skip = 3,
                          na.strings = "#N/A")
 # Add flag columns
-NewMeterData <- add_column(.data = NewMeterData, sFlag = NA, lFlag = NA, exFlag = NA)
+NewMeterData <- add_column(.data = NewMeterData, sFlag = NA, lFlag = NA, TempFlag = NA,
+                           SolFlag = NA, AtmFlag = NA)
 
 # Adding other date-related colunmns
 # Column with date in correct format
@@ -162,9 +163,25 @@ sFlag <- ifelse(NewMeterData$Date_Format >= mdy_hm("1/1/21 14:30") &
 NewMeterData$sFlag <- sFlag
 
 
-# Adding flag for extreme values
-#   (see questions)
-  
+# Adding flag for extreme temp values
+# should these be functinos?
+for (i in 1:nrow(NewMeterData)){
+  NewMeterData$TempFlag[i] <- ifelse(NewMeterData[i, "AirTemp"]>100 | NewMeterData[i, "AirTemp"]<(-100),
+                                  "X", NA)
+}
+
+# Adding flag for extreme solar values
+for (i in 1:nrow(NewMeterData)){
+  NewMeterData$SolFlag[i] <- ifelse(NewMeterData[i, "SolRad"]<0,
+                                     "X", NA)
+}
+
+# Adding flag for extreme temp values
+for (i in 1:nrow(NewMeterData)){
+  NewMeterData$AtmFlag[i] <- ifelse(NewMeterData[i, "AtmosPr"]>150 | NewMeterData[i, "AtmosPr"]<(50),
+                                     "X", NA)
+}
+
 
 # Combining new meter data with larger data frame (not tested)
 MeterData <- rbind(MeterData, NewMeterData)
@@ -187,22 +204,13 @@ write.csv(TOMSTUnits, paste0(DirFinal[user], "/TOMSTUnits.csv"))
 
 # TO DO:
 # Look in meta data for what sensor does at daylight savings
-# Add extreme temp flag / function
 # Figure out why functions aren't working
 
 # QUESTIONS:
 #   Should I make all operations functions? Or should some just run on their own?
 #   In the "user script", will they have to call the functions separately from what
 #     runs when the initial flag is false?
-#   should I be checking for extremes that last more than a certain period of
-#     time? only mark flags if they're extreme values for more than a certain 
-#     time period?
 
-# extreme temps --> just compare to a threshold (does it make sense ex: >1000)
-# sol rad < 0 
-# air temp > something high
-# check manual for wind info
-# atmospheric pressure value for area
 
 
 # NOTES:
