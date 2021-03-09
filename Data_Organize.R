@@ -28,7 +28,7 @@ user = 1
 
 # Creating marker for initial run --> if this is true the first section of code
 #   will run, if false the second section will run.
-InitialRunFlag <- TRUE
+InitialRunFlag <- FALSE
 
 #### ONLY RUN ONE TIME ----
 if (InitialRunFlag == TRUE){
@@ -97,23 +97,15 @@ colnames(NewMeterData) <- ColNames
 # Function to add NA values to NA dataframe
 CountNA <- function(Date){
   i = nrow(NAcount) + 1
-  NAcount[i,1] = mdy_hm("12/11/20 14:30")
-  NAcount[i,2] = as.numeric(sum(is.na(NewMeterData$SolRad)))
-  NAcount[i,3] = as.numeric(sum(is.na(NewMeterData$WindSpeed)))
-  NAcount[i,4] = as.numeric(sum(is.na(NewMeterData$AirTemp)))
-  NAcount[i,5] = sum(NAcount[i,2:4])
+  NAcount[i,1] <<- mdy_hm(Date)
+  NAcount[i,2] <<- as.numeric(sum(is.na(NewMeterData$SolRad)))
+  NAcount[i,3] <<- as.numeric(sum(is.na(NewMeterData$WindSpeed)))
+  NAcount[i,4] <<- as.numeric(sum(is.na(NewMeterData$AirTemp)))
+  NAcount[i,5] <<- sum(NAcount[i,2:4])
 }
 
-# Function doesn't work right now (?)
+# Function works!!
 CountNA("12/11/20 14:30")
-
-# testing function outside -- works fine
-i = nrow(NAcount) + 1
-NAcount[i,1] = mdy_hm("12/11/20 14:30")
-NAcount[i,2] = as.numeric(sum(is.na(NewMeterData$SolRad)))
-NAcount[i,3] = as.numeric(sum(is.na(NewMeterData$WindSpeed)))
-NAcount[i,4] = as.numeric(sum(is.na(NewMeterData$AirTemp)))
-NAcount[i,5] = sum(NAcount[i,2:4])
 
 
 # Adding flags for level
@@ -134,33 +126,21 @@ SnowFlag <- function(start_date, end_date, tz){
   sFlag1 = rep(NA, nrow(NewMeterData))
   if (tz == "EST"){
     for (i in 1:length(start_date)){
-      sFlag1 = ifelse(NewMeterData$Date_Format >= mdy_hm(start_date[i]) & 
+      sFlag1 <- ifelse(NewMeterData$Date_Format >= mdy_hm(start_date[i]) & 
                      NewMeterData$Date_Format <= mdy_hm(end_date[i]), 
-                     1, sFlag)
+                     1, sFlag1)
       
     }
-    NewMeterData$sFlag <- sFlag1
+    NewMeterData$sFlag <<- sFlag1
   } else{
   print("Error: wrong time zone, use EST for data entry")
   }
 }
-NewMeterData$SnowFlag <- sFlag
 
+# Function works now!
 SnowFlag(c("12/11/20 14:30", "1/1/21 14:30"), 
          c("12/13/20 14:30", "1/3/21 14:30"),
          "EST")
-
-start_date = c("12/11/20 14:30", "1/1/21 14:30")
-
-sFlag <- ifelse(NewMeterData$Date_Format >= mdy_hm("12/11/20 14:30") & 
-                NewMeterData$Date_Format <= mdy_hm("12/13/20 14:30"), 
-                1,NewMeterData$sFlag)
-
-sFlag <- ifelse(NewMeterData$Date_Format >= mdy_hm("1/1/21 14:30") & 
-                NewMeterData$Date_Format <= mdy_hm("1/3/21 14:30"), 
-                1, NewMeterData$sFlag)
-
-NewMeterData$sFlag <- sFlag
 
 
 # Adding flag for extreme temp values
@@ -190,27 +170,22 @@ MeterData <- rbind(MeterData, NewMeterData)
 MeterData <- MeterData[!duplicated(MeterData$Date), ]
 
 # Saving all files back into Google Drive
-# Field notes
-write.csv(FieldNotes, paste0(DirFinal[user], "/FieldNotes.csv"))
 # Meter data
 write.csv(MeterData, paste0(DirFinal[user], "/MeterData.csv"))
 # Meter unit data
 write.csv(MeterUnits, paste0(DirFinal[user], "/MeterUnits.csv"))
-# TOMST data
-write.csv(TOMSTData, paste0(DirFinal[user], "/TOMSTData.csv"))
-# TOMST unit data
-write.csv(TOMSTUnits, paste0(DirFinal[user], "/TOMSTUnits.csv"))
+# NA Count
+write.csv(NAcount, paste0(DirFinal[user], "/NAcount.csv"))
 }
 
 # TO DO:
 # Look in meta data for what sensor does at daylight savings
-# Figure out why functions aren't working
 
 # QUESTIONS:
 #   Should I make all operations functions? Or should some just run on their own?
 #   In the "user script", will they have to call the functions separately from what
 #     runs when the initial flag is false?
-
+#   Should I save the NA count as a file to the google folder?
 
 
 # NOTES:
