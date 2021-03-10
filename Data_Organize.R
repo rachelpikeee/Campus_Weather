@@ -186,6 +186,7 @@ write.csv(NAcount, paste0(DirFinal[user], "/NAcount.csv"))
 #   In the "user script", will they have to call the functions separately from what
 #     runs when the initial flag is false?
 #   Should I save the NA count as a file to the google folder?
+#   How to format the user script?
 
 
 # NOTES:
