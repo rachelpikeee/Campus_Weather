@@ -119,8 +119,6 @@ for (i in 1:nrow(NewMeterData)){
 # Adding flag for snow
 # Start and end dates for period with snow on sensor (change these values in user script
 #     based on field notes)
-sFlag = rep(NA, nrow(NewMeterData))
-
 # Snow flag function
 SnowFlag <- function(start_date, end_date, tz){
   sFlag1 = rep(NA, nrow(NewMeterData))
@@ -180,6 +178,7 @@ write.csv(NAcount, paste0(DirFinal[user], "/NAcount.csv"))
 
 # TO DO:
 # Look in meta data for what sensor does at daylight savings
+# sensor corrects for daylight savings
 
 # QUESTIONS:
 #   Should I make all operations functions? Or should some just run on their own?
