@@ -58,6 +58,12 @@ colnames(MeterUnits) <- c("Measurement", "Units")
 NAcount <- data.frame(matrix(ncol = 5, nrow = 0))
 colnames(NAcount) <- c("Date", "SolarNA", "WindNA", "TempNA", "TotalNA")
 NAcount$Date <- as.Date(NAcount$Date)
+
+# Creating data frame for user inputs
+UserInputsAll <- data.frame(matrix(ncol = 7, nrow = 0))
+UserCols <- c("Version", "InitialRunFlag", "DOLD", "NADate", "SnowStart", "SnowEnd", "TZ")
+colnames(UserInputsAll) <- UserCols
+
 } else {
 
 #### RUN EVERY TIME NEW DATA IS DOWNLOADED ----
@@ -168,24 +174,27 @@ MeterData <- rbind(MeterData, NewMeterData)
 MeterData <- MeterData[!duplicated(MeterData$Date), ]
 
 # Saving all files back into Google Drive
+# save files as different versions -- don't rewrite over the old files
+# allows for better workflow
+# user defined variable for version name (make this a function)
 # Meter data
 write.csv(MeterData, paste0(DirFinal[user], "/MeterData.csv"))
 # Meter unit data
+# move to top -- only needs to be run once
 write.csv(MeterUnits, paste0(DirFinal[user], "/MeterUnits.csv"))
 # NA Count
 write.csv(NAcount, paste0(DirFinal[user], "/NAcount.csv"))
 }
 
 # TO DO:
-# Look in meta data for what sensor does at daylight savings
-# sensor corrects for daylight savings
+# make saving file a function
+# add checks for incorrect inputs throughout script --> print errors
+# rbind the user input data to the user input all
+# add version names for files
+# test with two data sets that we have
+# test with errors
 
 # QUESTIONS:
-#   Should I make all operations functions? Or should some just run on their own?
-#   In the "user script", will they have to call the functions separately from what
-#     runs when the initial flag is false?
-#   Should I save the NA count as a file to the google folder?
-#   How to format the user script?
 
 
 # NOTES:
