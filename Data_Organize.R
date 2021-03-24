@@ -28,7 +28,12 @@ user = 1
 
 # Creating marker for initial run --> if this is true the first section of code
 #   will run, if false the second section will run.
-InitialRunFlag <- UserInputs[1,2]
+if (UserInputs[1,2] == TRUE | UserInputs[1,2] == FALSE){
+  InitialRunFlag <- UserInputs[1,2]
+} else{
+  print("InitialRunFlag must be a boolean (either TRUE or FALSE). Try again.")
+}
+
 
 #### ONLY RUN ONE TIME ----
 if (InitialRunFlag == TRUE){
@@ -67,15 +72,34 @@ colnames(UserInputsAll) <- UserCols
 } else {
 
 #### RUN EVERY TIME NEW DATA IS DOWNLOADED ----
+UserInputsAll <- read.csv(paste0(DirFinal[user], "/UserInputsAllv4.csv"), colClasses = c("NULL", rep(NA,7)))
+MeterData <- read.csv(paste0(DirFinal[user], "/MeterData", UserInputsAll[nrow(UserInputsAll), 1], ".csv"), colClasses = c("NULL", rep(NA, 31)))
+MeterUnits <- read.csv(paste0(DirFinal[user], "/MeterUnits", UserInputsAll[nrow(UserInputsAll), 1], ".csv"))
+NAcount <- read.csv(paste0(DirFinal[user], "/NACount", UserInputsAll[nrow(UserInputsAll), 1], ".csv"), colClasses = c("NULL", rep(NA,5)))
+NAcount$Date <- as.Date(NAcount$Date)
+
+ColNames <- c("Date","SolRad","Precip","LightningAct","LightningDist","WindDir","WindSpeed",
+              "GustSpeed","AirTemp","VaporPr","AtmosPr","XLevel","YLevel","MaxPrecip",
+              "SensorTemp","VPD","BatPct","BatVolt","RefPr","LogTemp", "sFlag", 
+              "lFlag", "TempFlag","SolFlag", "AtmFlag", "Date_Format", "DOY", "DecYear", "Year", "Hour", "Minute")
+
+
+# Create total NA variable to help keep track of sensor's QC tactics
+total_NA <- as.numeric(sum(NAcount[,5]))
 
 # Reading in most recent data
 # Character string of Date of Last Download -> change this every time
 #   Make sure it is the format DayMonYear-Time.csv (ex: 07Jan21-1510.csv)
 #   This should match the name of the file for the data on Google Drive
-
-DOLD <- UserInputs[1,3]
+if (character(UserInputs[1,3])){
+  DOLD <- UserInputs[1,3]
+} else{
+  print("DOLD must be a character string of the date of last downlaod.
+        It needs to have the form DayMonYear-Time.csv (ex: 07Jan21-1510.csv). Try again.")
+}
 
 # Read in the csv, skipping the first three columns
+print("Reading in the new data")
 NewMeterData <- read.csv(paste0(DirMeter[user], DOLD), header = FALSE, skip = 3,
                          na.strings = "#N/A")
 # Add flag columns
@@ -112,10 +136,18 @@ CountNA <- function(Date){
 }
 
 # Use function
-CountNA(UserInputs[1,4])
+print("Counting the total NA values in the new data")
+
+if (character(UserInputs[1,4])){
+  CountNA(UserInputs[1,4])
+} else{
+  print("NADate must be a character string of the date of last downlaod.
+        It needs to have the form 'Month/Day/Year Time' (ex: 2/26/21 12:00). Try again.")
+}
 
 
 # Adding flags for level
+print("Adding flag for errors with the level.")
 for (i in 1:nrow(NewMeterData)){
   NewMeterData$lFlag[i] <- ifelse(NewMeterData[i, "XLevel"]>2 | NewMeterData[i, "XLevel"]<(-2)
                                | NewMeterData[i, "YLevel"]>2 | NewMeterData[i, "YLevel"]<(-2),
@@ -137,10 +169,19 @@ SnowFlag <- function(start_date, end_date, tz){
 }
 
 # Use Function
-SnowFlag(UserInputs[1,5], UserInputs[1,6], UserInputs[1,7])
+print("Adding flag for periods with snow/ice")
+if (character(UserInputs[1,5]) & character(UserInputs[1,6]) & character(UserInputs[1,7])){
+  SnowFlag(UserInputs[1,5], UserInputs[1,6], UserInputs[1,7])
+} else{
+  print("SnowStart and SnowEnd must be a character string of the date of the start
+        and end of the period where the sensor was compromised. It needs to have the 
+        form 'Month/Day/Year Time' (ex: 2/26/21 12:00). Time zone must also be 
+        a character string. Try again.")
+}
 
 
 # Adding flag for extreme temp values
+print("Adding flag for extreme values.")
 for (i in 1:nrow(NewMeterData)){
   NewMeterData$TempFlag[i] <- ifelse(NewMeterData[i, "AirTemp"]>100 | NewMeterData[i, "AirTemp"]<(-100),
                                   "X", NA)
@@ -159,6 +200,7 @@ for (i in 1:nrow(NewMeterData)){
 }
 
 # Combining new meter data with larger data frame
+print("Combining the new and old data frames.")
 MeterData <- rbind(MeterData, NewMeterData)
 
 # Getting rid of overlap
@@ -168,6 +210,7 @@ MeterData <- MeterData[!duplicated(MeterData$Date), ]
 UserInputsAll <- rbind(UserInputsAll, UserInputs)
 
 # Saving all files back into Google Drive
+print("Saving files to Google Drive.")
 # Meter data
 write.csv(MeterData, paste0(DirFinal[user], "/MeterData", UserInputs[1, 1], ".csv"))
 # Meter unit data
@@ -179,10 +222,8 @@ write.csv(NAcount, paste0(DirFinal[user], "/NAcount", UserInputs[1, 1], ".csv"))
 write.csv(UserInputsAll, paste0(DirFinal[user], "/UserInputsAll", UserInputs[1, 1], ".csv"))
 }
 
-# TO DO:
-# add checks for incorrect inputs throughout script --> print errors
-# test with two data sets that we have
-# test with errors
+print("All done! Double check that everything looks good in the files.")
 
-# QUESTIONS:
+# TO DO:
+# test with errors
 
