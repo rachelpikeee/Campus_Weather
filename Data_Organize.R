@@ -91,7 +91,7 @@ total_NA <- as.numeric(sum(NAcount[,5]))
 # Character string of Date of Last Download -> change this every time
 #   Make sure it is the format DayMonYear-Time.csv (ex: 07Jan21-1510.csv)
 #   This should match the name of the file for the data on Google Drive
-if (character(UserInputs[1,3])){
+if (is.character(UserInputs[1,3])){
   DOLD <- UserInputs[1,3]
 } else{
   print("DOLD must be a character string of the date of last downlaod.
@@ -138,7 +138,7 @@ CountNA <- function(Date){
 # Use function
 print("Counting the total NA values in the new data")
 
-if (character(UserInputs[1,4])){
+if (is.character(UserInputs[1,4])){
   CountNA(UserInputs[1,4])
 } else{
   print("NADate must be a character string of the date of last downlaod.
@@ -170,13 +170,17 @@ SnowFlag <- function(start_date, end_date, tz){
 
 # Use Function
 print("Adding flag for periods with snow/ice")
-if (character(UserInputs[1,5]) & character(UserInputs[1,6]) & character(UserInputs[1,7])){
+if (is.character(UserInputs[1,5]) & is.character(UserInputs[1,6]) & is.character(UserInputs[1,7])){
   SnowFlag(UserInputs[1,5], UserInputs[1,6], UserInputs[1,7])
-} else{
-  print("SnowStart and SnowEnd must be a character string of the date of the start
-        and end of the period where the sensor was compromised. It needs to have the 
-        form 'Month/Day/Year Time' (ex: 2/26/21 12:00). Time zone must also be 
-        a character string. Try again.")
+} 
+  else if (is.na(UserInputs[1,5]) & is.na(UserInputs[1,6]) & is.character(UserInputs[1,7])){
+    SnowFlag(UserInputs[1,5], UserInputs[1,6], UserInputs[1,7])
+  }
+  else{
+    print("SnowStart and SnowEnd must be a character string of the date of the start
+          and end of the period where the sensor was compromised. It needs to have the 
+          form 'Month/Day/Year Time' (ex: 2/26/21 12:00). Time zone must also be 
+          a character string. Try again.")
 }
 
 
@@ -226,4 +230,9 @@ print("All done! Double check that everything looks good in the files.")
 
 # TO DO:
 # test with errors
+# write TOMST script
+#   adjust for GMT / daylight savings time
+#   naming scheme for files
+#   download from manual date -> correct for overlap in same day obs
+#   update instruction sheet with TOMST stuff
 
