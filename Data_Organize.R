@@ -5,7 +5,7 @@ library(naniar)
 library(tibble)
 
 # Started 2/17/2021
-# Script to read in, clean, and organize campus weather data
+# Script to read in, clean, and organize campus weather data from METER sensor
 
 #### Setting up directories
 
@@ -72,7 +72,9 @@ colnames(UserInputsAll) <- UserCols
 } else {
 
 #### RUN EVERY TIME NEW DATA IS DOWNLOADED ----
-UserInputsAll <- read.csv(paste0(DirFinal[user], "/UserInputsAllv4.csv"), colClasses = c("NULL", rep(NA,7)))
+# Reading in old data to make sure global environment is up to date
+# CHANGE THE VERSION IN THE USER INPUTS ALL FILE TO MOST RECENT IN THE FOLDER
+UserInputsAll <- read.csv(paste0(DirFinal[user], "/UserInputsAllv5.csv"), colClasses = c("NULL", rep(NA,7)))
 MeterData <- read.csv(paste0(DirFinal[user], "/MeterData", UserInputsAll[nrow(UserInputsAll), 1], ".csv"), colClasses = c("NULL", rep(NA, 31)))
 MeterUnits <- read.csv(paste0(DirFinal[user], "/MeterUnits", UserInputsAll[nrow(UserInputsAll), 1], ".csv"))
 NAcount <- read.csv(paste0(DirFinal[user], "/NACount", UserInputsAll[nrow(UserInputsAll), 1], ".csv"), colClasses = c("NULL", rep(NA,5)))
@@ -212,6 +214,9 @@ MeterData <- MeterData[!duplicated(MeterData$Date), ]
 
 # Combining recent user inputs with complete data frame
 UserInputsAll <- rbind(UserInputsAll, UserInputs)
+
+# Getting rid of overlap
+UserInputsAll <- UserInputsAll[!duplicated(UserInputsAll$Version), ]
 
 # Saving all files back into Google Drive
 print("Saving files to Google Drive.")

@@ -35,18 +35,18 @@ colnames(UserInputs) <- UserCols
 # UPDATE INPUTS HERE!!!!
 # Version: This is the title of this version of data. Can be anything, but 
 #          could follow format 1.1, or v1, v2.1, etc. 
-UserInputs[1,1] <- "v5"
+UserInputs[1,1] <- "v6"
 # InitialRunFlag: TRUE or FALSE, make TRUE if this is the first time the script is
 #                 run, otherwise put false
 UserInputs[1,2] <- FALSE
 # DOLD: Date of last download, this is to read in the data, make sure it is in the
 #       format format DayMonYear-Time.csv (ex: 07Jan21-1510.csv). This should 
 #       match the name of the file for the data on Google Drive.
-UserInputs[1,3] <- "30Mar21-1520.csv"
+UserInputs[1,3] <- "18Apr21-1732.csv"
 # NADate: This is the same date as day of last download. It will go into the data
 #         frame that keeps track of NA values. The format for this date is 
 #         mm/dd/yy hh:mm (ex: 12/11/20 14:30)
-UserInputs[1,4] <- "03/30/21 15:20"
+UserInputs[1,4] <- "04/18/21 17:32"
 # SnowStart: If in your field notes, you indicate a period where the sensor was 
 #            covered by snow or ice, this is the start date for that period. The
 #            format for this date is mm/dd/yy hh:mm (ex: 12/11/20 14:30)
@@ -63,7 +63,10 @@ UserInputs[1,7] <- "EDT"
 # Run Data_Organize script
 source(paste0(DirCode[user], "/Data_Organize.R"))
 
+source(paste0(DirCode[user], "/Tomst_Organize.R"))
+
 
 # TO DO:
-# write instruction sheet
+# update instruction sheet
+# add tomst script into this one
 
