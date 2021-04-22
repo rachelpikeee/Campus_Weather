@@ -42,7 +42,7 @@ if (InitialRunFlag == TRUE){
 ColNames <- c("Date","SolRad","Precip","LightningAct","LightningDist","WindDir","WindSpeed",
               "GustSpeed","AirTemp","VaporPr","AtmosPr","XLevel","YLevel","MaxPrecip",
               "SensorTemp","VPD","BatPct","BatVolt","RefPr","LogTemp", "sFlag", 
-              "lFlag", "TempFlag","SolFlag", "AtmFlag", "Date_Format", "DOY", "DecYear", "Year", "Hour", "Minute")
+              "lFlag", "TempFlag","SolFlag", "AtmFlag", "Date_Format", "DOY", "Year", "Hour", "Minute", "DecYear")
 
 # Create empty data frame and rename columns
 MeterData <- data.frame(matrix(ncol = length(ColNames), nrow = 0))
@@ -83,7 +83,7 @@ NAcount$Date <- as.Date(NAcount$Date)
 ColNames <- c("Date","SolRad","Precip","LightningAct","LightningDist","WindDir","WindSpeed",
               "GustSpeed","AirTemp","VaporPr","AtmosPr","XLevel","YLevel","MaxPrecip",
               "SensorTemp","VPD","BatPct","BatVolt","RefPr","LogTemp", "sFlag", 
-              "lFlag", "TempFlag","SolFlag", "AtmFlag", "Date_Format", "DOY", "DecYear", "Year", "Hour", "Minute")
+              "lFlag", "TempFlag","SolFlag", "AtmFlag", "Date_Format", "DOY", "Year", "Hour", "Minute", "DecYear")
 
 
 # Create total NA variable to help keep track of sensor's QC tactics
