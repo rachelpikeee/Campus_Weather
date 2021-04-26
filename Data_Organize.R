@@ -120,7 +120,7 @@ NewMeterData$Hour <- hour(NewMeterData$Date_Format)
 # Minute Column
 NewMeterData$Minute <- minute(NewMeterData$Date_Format)
 # Decimal Year Column
-NewMeterData$DecYear <- round(NewMeterData$Year + ((NewMeterData$DOY - 1 + (NewMeterData$Hour/24) + 
+NewMeterData$DecYear <- round(NewMeterData$Year + (((NewMeterData$DOY - 1) + (NewMeterData$Hour/24) + 
                                                       (NewMeterData$Minute/1440))/
                                                      ifelse(leap_year(NewMeterData$Year),
                                                             366,365)), digits = 6)

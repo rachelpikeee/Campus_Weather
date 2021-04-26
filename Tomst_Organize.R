@@ -192,7 +192,7 @@ if (InitialRunFlag == TRUE){
   # Minute Column
   NewTomst25mData$Minute <- as.numeric(format(NewTomst25mData$Date_Format, "%M"))
   # Decimal Year Column
-  NewTomst25mData$DecYear <- round(NewTomst25mData$Year + ((NewTomst25mData$DOY - 1 + (NewTomst25mData$Hour/24) + 
+  NewTomst25mData$DecYear <- round(NewTomst25mData$Year + (((NewTomst25mData$DOY - 1) + (NewTomst25mData$Hour/24) + 
                                                           (NewTomst25mData$Minute/1440))/
                                                          ifelse(leap_year(NewTomst25mData$Year),
                                                                 366,365)), digits = 6)
@@ -278,10 +278,6 @@ if (InitialRunFlag == TRUE){
 print("All done! Double check that everything looks good in the files.")
 
 # TO DO:
-#   update instruction sheet with TOMST stuff
-#   put together some initial visualizations
 #   commenting code for audience that is new to coding 
 #   double check that temps from TOMST match meter data
 
-# NOTES:
-#   temps are off for METER vs. TOMST
